@@ -7,26 +7,26 @@ AZUL = "#2a78d6"
 LARANJA = "#eb6834"
 SEQUENCIAL = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#2a78d6", "#1c5cab", "#104281", "#0d366b"]
 
-SUPERFICIE = "#fcfcfb"
-TINTA = "#0b0b0b"
-TINTA_2 = "#52514e"
-TINTA_MUDA = "#898781"
-GRADE = "#e1e0d9"
-EIXO = "#c3c2b7"
-FONTE = 'system-ui, -apple-system, "Segoe UI", sans-serif'
+SUPERFICIE = "#ffffff"
+TINTA = "#0f172a"
+TINTA_2 = "#475569"
+TINTA_MUDA = "#64748b"
+GRADE = "#eef0f4"
+EIXO = "#d5dae3"
+FONTE = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif'
 
 
 def _tema(fig: go.Figure, titulo: str, subtitulo: str | None = None, altura: int = 340) -> go.Figure:
     texto = f"<b>{titulo}</b>" + (f"<br><span style='font-size:12px;color:{TINTA_2}'>{subtitulo}</span>"
                                    if subtitulo else "")
     fig.update_layout(
-        title=dict(text=texto, x=0, xanchor="left", font=dict(size=15, color=TINTA)),
+        title=dict(text=texto, x=0.01, xanchor="left", y=0.97, yanchor="top", font=dict(size=15, color=TINTA)),
         height=altura,
-        margin=dict(l=8, r=24, t=64 if subtitulo else 48, b=8),
+        margin=dict(l=12, r=28, t=78 if subtitulo else 56, b=12),
         paper_bgcolor=SUPERFICIE, plot_bgcolor=SUPERFICIE,
         font=dict(family=FONTE, size=12, color=TINTA_2),
         separators=",.",
-        hoverlabel=dict(bgcolor="white", bordercolor=GRADE, font=dict(family=FONTE, color=TINTA)),
+        hoverlabel=dict(bgcolor="white", bordercolor=EIXO, font=dict(family=FONTE, color=TINTA, size=13)),
         legend=dict(orientation="h", y=1.02, yanchor="bottom", x=1, xanchor="right",
                     font=dict(color=TINTA_2)),
         barcornerradius=4,
