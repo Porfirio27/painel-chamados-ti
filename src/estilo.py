@@ -104,7 +104,7 @@ def nota(texto: str) -> None:
     st.html(f'<div class="nota-pagina">{texto}</div>')
 
 
-def kpi(rotulo: str, valor: str, unidade: str = "", cor: str = "branco", delta: str | None = None,
+def kpi(rotulo: str, valor: str, unidade: str = "", cor: str = "azul", delta: str | None = None,
         tom: str = "neutro", nota: str | None = None, ajuda: str = "", barra: float | None = None) -> str:
     """HTML de um cartão de indicador. cor: chave de CORES; tom do delta: 'bom', 'ruim' ou 'neutro'."""
     c = CORES.get(cor, cor)

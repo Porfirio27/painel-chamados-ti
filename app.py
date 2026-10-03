@@ -104,14 +104,14 @@ pct_resp = df["tem_primeira_resposta"].mean() * 100
 estilo.kpis([
     estilo.kpi("Total", f"{atual['n']:,}".replace(",", "."), delta=d_n, tom=t_n,
                ajuda="Chamados abertos no período selecionado"),
-    estilo.kpi("Em aberto", str(abertos_agora), cor="amarelo",
+    estilo.kpi("Em aberto", str(abertos_agora),
                ajuda="Chamados ainda não fechados (respeita os filtros de setor, categoria e prioridade)."),
-    estilo.kpi("Resolvidos", f"{resolvidos_n:,}".replace(",", "."), cor="verde",
+    estilo.kpi("Resolvidos", f"{resolvidos_n:,}".replace(",", "."),
                nota="Com data de resolução registrada no período."),
-    estilo.kpi("SLA cumprido", g.fmt(atual["sla"], 0) if atual["sla"] is not None else "–", "%", cor="azul",
+    estilo.kpi("SLA cumprido", g.fmt(atual["sla"], 0) if atual["sla"] is not None else "–", "%",
                delta=d_sla, tom=t_sla, barra=atual["sla"],
                ajuda=f"Meta em horas corridas: {config.SLA_RESOLUCAO_HORAS}."),
-    estilo.kpi("SLA estourado", str(estourados), cor="vermelho",
+    estilo.kpi("SLA estourado", str(estourados),
                nota=f"Acima da meta de {config.SLA_RESOLUCAO_HORAS['media']}h (recalculado; a API marca 0).",
                ajuda="O status de SLA da API está sempre 'ok', por isso o valor é recalculado."),
 ], colunas=5)
@@ -120,7 +120,7 @@ estilo.kpis([
                ajuda="Tempo corrido entre abertura e resolução. Metade dos chamados é resolvida em menos tempo."),
     estilo.kpi("Resolução em horário útil (mediana)", *tempo(atual["util"]), delta=d_util, tom=t_util,
                ajuda=f"Conta só dias úteis das {config.EXPEDIENTE[0]}h às {config.EXPEDIENTE[1]}h."),
-    estilo.kpi("1ª resposta (mediana)", *tempo(atual["resp"]), cor="roxo",
+    estilo.kpi("1ª resposta (mediana)", *tempo(atual["resp"]),
                nota=f"Registrada em só {g.fmt(pct_resp, 0)}% dos chamados."),
 ], colunas=3)
 
@@ -213,14 +213,14 @@ with aba_previsao:
         margem4 = (((mes["lim_sup"] - mes["previsao"]) ** 2).sum()) ** 0.5
         estilo.kpis([
             estilo.kpi(f"Próxima semana ({prox['inicio_semana']:%d/%m})", g.fmt(prox["previsao"], 0),
-                       " chamados", cor="azul",
+                       " chamados",
                        nota=f"Entre {g.fmt(prox['lim_inf'], 0)} e {g.fmt(prox['lim_sup'], 0)}"),
-            estilo.kpi("Próximas 4 semanas", g.fmt(total4, 0), " chamados", cor="azul",
+            estilo.kpi("Próximas 4 semanas", g.fmt(total4, 0), " chamados",
                        nota=f"Entre {g.fmt(max(total4 - margem4, 0), 0)} e {g.fmt(total4 + margem4, 0)}"),
             estilo.kpi("Erro médio do modelo", f"±{g.fmt(res.erro_medio)}", " /semana",
                        nota=f"{g.fmt(res.erro_pct, 0)}% da média semanal",
                        ajuda="Medido prevendo semanas que já aconteceram."),
-            estilo.kpi("Ganho sobre o método simples", g.fmt(melhora, 0), "%", cor="verde",
+            estilo.kpi("Ganho sobre o método simples", g.fmt(melhora, 0), "%",
                        nota=f"Repetir a semana anterior erraria ±{g.fmt(res.erro_ingenuo)}"),
         ], colunas=4)
 
