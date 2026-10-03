@@ -1,71 +1,76 @@
-"""Visual do painel no padrão do sistema de chamados: tema escuro, barra superior e cartões."""
+"""Visual do painel: CSS, cabeçalho, cartões de indicador e cartões de conteúdo."""
 import html
 from itertools import count
 
 import streamlit as st
 
-# Cores dos números nos cartões (mesmo significado do sistema de chamados)
-CORES = {
-    "branco": "#f3f4f6", "amarelo": "#facc15", "roxo": "#a855f7", "verde": "#22c55e",
-    "laranja": "#f97316", "vermelho": "#ef4444", "azul": "#3b82f6", "rosa": "#fb7185",
-}
-
 CSS = """
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,1&display=swap");
 :root {
-  --bg: #111827; --barra: #1f2937; --card: #1f2937; --card-2: #263244; --borda: #2d3a4d;
-  --tinta: #f3f4f6; --tinta-2: #d1d5db; --muda: #9ca3af; --azul: #3b82f6;
+  --bg: #f4f6fa; --card: #ffffff; --borda: #e6e9f0; --tinta: #0f172a; --tinta-2: #475569;
+  --muda: #64748b; --azul: #2a78d6; --azul-escuro: #1c5cab; --verde: #0f8a3c; --vermelho: #c53030;
 }
-html, body, .stApp, button, input, textarea, [data-testid="stMarkdownContainer"] {
-  font-family: "Segoe UI", "Nunito", system-ui, -apple-system, sans-serif !important; }
-.stApp { background: var(--bg); color: var(--tinta); }
-[data-testid="stHeader"] { display: none; }
+html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inter", system-ui, sans-serif !important; }
+.stApp { background: var(--bg); }
+[data-testid="stHeader"] { background: transparent; }
 [data-testid="stToolbar"], [data-testid="stDecoration"], footer, #MainMenu { display: none !important; }
-.block-container { padding-top: 0 !important; padding-bottom: 3rem; max-width: 1560px; }
-/* Barra superior */
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  background: var(--barra); margin: 0 calc(50% - 50vw); padding: 14px max(24px, calc(50vw - 760px));
-  border-bottom: 1px solid #263244; }
-.topbar .marca { font-size: 20px; font-weight: 700; letter-spacing: .02em; color: #fff; }
-.topbar .direita { display: flex; align-items: center; gap: 14px; color: var(--muda); font-size: 14px; }
-.topbar .sino { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
-  border: 1px solid #a16207; background: rgba(250, 204, 21, .08); color: #facc15; font-size: 18px; }
-.titulo-pagina { font-size: 38px; font-weight: 700; color: #fff; margin: 34px 0 22px; letter-spacing: -.01em; }
+.block-container { padding-top: 1.4rem; padding-bottom: 3rem; max-width: 1440px; }
+
+/* Cabeçalho */
+.hero { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+  background: linear-gradient(120deg, #0d366b 0%, #1c5cab 55%, #2a78d6 100%);
+  border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; color: #fff;
+  box-shadow: 0 10px 30px -12px rgba(13, 54, 107, .45); }
+.hero .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; font-weight: 600; }
+.hero h1 { font-size: 30px; font-weight: 700; margin: 4px 0 2px; color: #fff; padding: 0; letter-spacing: -.02em; }
+.hero p { margin: 0; opacity: .85; font-size: 14px; }
+.hero .chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.22); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 500;
+  backdrop-filter: blur(6px); }
+.hero .ponto { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
+
 /* Cartões de conteúdo (st.container com key "card_*") */
-[class*="st-key-card_"] { background: var(--card); border: none !important; border-radius: 10px !important; padding: 8px 10px; }
-[class*="st-key-filtros"] { background: var(--card); border-radius: 10px !important; padding: 6px 14px 12px; margin-bottom: 22px; }
-[class*="st-key-filtros"] label p { font-size: 14px !important; color: var(--muda) !important; }
+[class*="st-key-card_"] { background: var(--card); border: 1px solid var(--borda) !important; border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px -6px rgba(15,23,42,.08); padding: 6px 8px; }
+[class*="st-key-filtros"] { background: var(--card); border: 1px solid var(--borda) !important; border-radius: 16px !important;
+  padding: 4px 10px 8px; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+[class*="st-key-filtros"] label p { font-size: 12px !important; font-weight: 600; color: var(--muda); text-transform: uppercase; letter-spacing: .04em; }
+
 /* Indicadores */
-.kpis { display: grid; gap: 20px; margin: 0 0 20px; }
-.kpi { background: var(--card); border-radius: 10px; padding: 26px 30px; min-height: 132px; }
-.kpis.c5 .kpi { min-height: 180px; }
-.kpi .rotulo { font-size: 17px; color: var(--tinta-2); font-weight: 400; margin-bottom: 4px; }
-.kpi .valor { font-size: 38px; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; }
-.kpi .valor small { font-size: 18px; font-weight: 600; margin-left: 2px; opacity: .85; }
-.kpi .nota { font-size: 14px; color: var(--tinta-2); margin-top: 12px; line-height: 1.45; }
-.kpi .delta { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
-.delta.bom { color: #4ade80; background: rgba(34,197,94,.12); }
-.delta.ruim { color: #f87171; background: rgba(239,68,68,.12); }
-.delta.neutro { color: var(--tinta-2); background: rgba(156,163,175,.14); }
-.kpi .barra { height: 6px; border-radius: 999px; background: #374151; margin-top: 12px; overflow: hidden; max-width: 220px; }
-.kpi .barra > div { height: 100%; border-radius: 999px; }
-@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr) !important; } }
-@media (max-width: 520px) { .kpis { grid-template-columns: 1fr !important; } .titulo-pagina { font-size: 30px; } }
-/* Abas no estilo do menu: texto cinza, ativa em branco sublinhada */
-[role="tablist"] { gap: 28px; border-bottom: 1px solid #263244 !important; box-shadow: none !important;
-  overflow-x: auto; margin-bottom: 6px; }
-[data-testid="stTab"] { padding: 0 2px 10px !important; background: transparent !important; border-bottom: 3px solid transparent; }
-[data-testid="stTab"] p { font-size: 17px; font-weight: 600; color: var(--muda); margin: 0; }
-[data-testid="stTab"]:hover p { color: var(--tinta-2); }
-[data-testid="stTab"][aria-selected="true"] { border-bottom-color: #fff; }
-[data-testid="stTab"][aria-selected="true"] p { color: #fff; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 14px; margin: 14px 0 18px; }
+.kpi { background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px -6px rgba(15,23,42,.08); transition: transform .15s, box-shadow .15s; }
+.kpi:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgba(15,23,42,.18); }
+.kpi .topo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.kpi .icone { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #e8f1fc; color: var(--azul); }
+.kpi .icone span { font-family: "Material Symbols Rounded"; font-size: 20px; line-height: 1; font-variation-settings: "FILL" 1; }
+.kpi .rotulo { font-size: 13px; color: var(--muda); font-weight: 500; line-height: 1.25; }
+.kpi .valor { font-size: 28px; font-weight: 700; color: var(--tinta); letter-spacing: -.02em; line-height: 1.1; }
+.kpi .valor small { font-size: 15px; font-weight: 600; color: var(--tinta-2); margin-left: 2px; }
+.kpi .rodape { margin-top: 8px; font-size: 12px; color: var(--muda); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.delta { font-weight: 600; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+.delta.bom { color: var(--verde); background: #e7f6ec; }
+.delta.ruim { color: var(--vermelho); background: #fdecec; }
+.delta.neutro { color: var(--tinta-2); background: #eef1f5; }
+.barra { height: 6px; border-radius: 999px; background: #e8f1fc; margin-top: 10px; overflow: hidden; }
+.barra > div { height: 100%; border-radius: 999px; background: var(--azul); }
+
+/* Abas em pílula */
+[role="tablist"] { gap: 6px; background: #e9edf3; padding: 5px; border-radius: 12px; width: fit-content;
+  max-width: 100%; overflow-x: auto; border: none !important; box-shadow: none !important; }
+[data-testid="stTab"] { height: 36px; padding: 0 16px !important; border-radius: 9px; background: transparent;
+  display: flex; align-items: center; transition: background .15s; }
+[data-testid="stTab"]:hover { background: rgba(255,255,255,.6); }
+[data-testid="stTab"] p { font-weight: 600; font-size: 14px; color: var(--tinta-2); margin: 0; }
+[data-testid="stTab"][aria-selected="true"] { background: var(--card); box-shadow: 0 1px 3px rgba(15,23,42,.14); }
+[data-testid="stTab"][aria-selected="true"] p { color: var(--azul-escuro); }
 .react-aria-SelectionIndicator { display: none !important; }
-[role="tabpanel"] { padding-top: 18px; }
-.secao { font-size: 15px; font-weight: 600; color: var(--muda); margin: 14px 2px 10px; }
-.nota-pagina { font-size: 14px; color: var(--muda); margin: 2px 2px 12px; }
-[data-testid="stDataFrame"] { border-radius: 8px; overflow: hidden; }
-.stDownloadButton button, .stButton button { border-radius: 8px; font-weight: 600; }
-[data-testid="stExpander"] details { background: var(--card); border: none; border-radius: 10px; }
+[role="tabpanel"] { padding-top: 14px; }
+.secao { font-size: 13px; font-weight: 700; color: var(--muda); text-transform: uppercase; letter-spacing: .06em; margin: 10px 2px 8px; }
+.nota { font-size: 13px; color: var(--muda); margin: 2px 4px 10px; }
+[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
+.stDownloadButton button, .stButton button { border-radius: 10px; font-weight: 600; }
 </style>
 """
 
@@ -79,47 +84,40 @@ def aplicar() -> None:
     st.html(CSS)
 
 
-def barra_superior(marca: str, direita: str) -> None:
+def cabecalho(titulo: str, subtitulo: str, atualizado: str) -> None:
     st.html(f"""
-<div class="topbar">
-  <div class="marca">{marca}</div>
-  <div class="direita"><span>{direita}</span></div>
+<div class="hero">
+  <div><div class="eyebrow">Central de chamados · TI</div><h1>{titulo}</h1><p>{subtitulo}</p></div>
+  <div class="chip"><span class="ponto"></span>{atualizado}</div>
 </div>""")
 
 
-def titulo(texto: str) -> None:
-    st.html(f'<div class="titulo-pagina">{texto}</div>')
-
-
 def card():
-    """Contêiner escuro com cantos arredondados para um gráfico ou tabela."""
+    """Contêiner branco com borda arredondada para um gráfico ou tabela."""
     return st.container(border=True, key=f"card_{next(_cards)}")
 
 
 def secao(texto: str) -> None:
-    st.html(f'<div class="secao">{texto}</div>')
+    st.markdown(f'<div class="secao">{texto}</div>', unsafe_allow_html=True)
 
 
-def nota(texto: str) -> None:
-    st.html(f'<div class="nota-pagina">{texto}</div>')
-
-
-def kpi(rotulo: str, valor: str, unidade: str = "", cor: str = "azul", delta: str | None = None,
+def kpi(icone: str, rotulo: str, valor: str, unidade: str = "", delta: str | None = None,
         tom: str = "neutro", nota: str | None = None, ajuda: str = "", barra: float | None = None) -> str:
-    """HTML de um cartão de indicador. cor: chave de CORES; tom do delta: 'bom', 'ruim' ou 'neutro'."""
-    c = CORES.get(cor, cor)
-    barra_html = (f'<div class="barra"><div style="width:{max(0, min(barra, 100)):.0f}%;background:{c}"></div></div>'
-                  if barra is not None else "")
-    delta_html = f'<div><span class="delta {tom}">{delta}</span></div>' if delta else ""
-    nota_html = f'<div class="nota">{nota}</div>' if nota else ""
-    return (f'<div class="kpi" title="{html.escape(ajuda)}"><div class="rotulo">{rotulo}</div>'
-            f'<div class="valor" style="color:{c}">{valor}<small>{unidade}</small></div>'
-            f"{barra_html}{delta_html}{nota_html}</div>")
+    """HTML de um cartão de indicador. tom: 'bom', 'ruim' ou 'neutro' (cor do delta)."""
+    rodape = ""
+    if delta or nota:
+        rodape = '<div class="rodape">' + (f'<span class="delta {tom}">{delta}</span>' if delta else "") + \
+                 (f"<span>{nota}</span>" if nota else "") + "</div>"
+    barra_html = f'<div class="barra"><div style="width:{max(0, min(barra, 100)):.0f}%"></div></div>' \
+        if barra is not None else ""
+    return f"""<div class="kpi" title="{html.escape(ajuda)}">
+  <div class="topo"><div class="icone"><span>{icone}</span></div><div class="rotulo">{rotulo}</div></div>
+  <div class="valor">{valor}<small>{unidade}</small></div>{barra_html}{rodape}
+</div>"""
 
 
-def kpis(cartoes: list[str], colunas: int | None = None) -> None:
-    n = colunas or len(cartoes)
-    st.html(f'<div class="kpis c{n}" style="grid-template-columns:repeat({n},1fr)">{"".join(cartoes)}</div>')
+def kpis(cartoes: list[str]) -> None:
+    st.html(f'<div class="kpis">{"".join(cartoes)}</div>')
 
 
 def delta(atual: float, anterior: float, casas: int = 0, sufixo: str = "", menor_melhor: bool = False,
@@ -129,10 +127,10 @@ def delta(atual: float, anterior: float, casas: int = 0, sufixo: str = "", menor
         return None, "neutro"
     diff = (atual / anterior - 1) * 100 if pct and anterior else atual - anterior
     if abs(diff) < 10 ** -casas / 2:
-        return "= estável vs anterior", "neutro"
+        return "= estável", "neutro"
     seta = "▲" if diff > 0 else "▼"
     texto = f"{seta} {abs(diff):,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".") + \
-            ("%" if pct else sufixo) + " vs anterior"
+            ("%" if pct else sufixo)
     if neutro:
         return texto, "neutro"
     melhorou = (diff < 0) if menor_melhor else (diff > 0)

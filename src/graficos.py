@@ -2,20 +2,18 @@
 import pandas as pd
 import plotly.graph_objects as go
 
-# Paleta para fundo escuro (tons validados para daltonismo — não reordenar)
-AZUL = "#3987e5"
-LARANJA = "#d95926"
-AZUL_FAIXA = "rgba(57,135,229,0.16)"
-# Sequencial no escuro: valor baixo perto do fundo, valor alto mais claro
-SEQUENCIAL = ["#1a3556", "#184f95", "#1c5cab", "#2a78d6", "#3987e5", "#5598e7", "#86b6ef", "#b7d3f6"]
+# Paleta (validada para daltonismo na ordem abaixo — não reordenar)
+AZUL = "#2a78d6"
+LARANJA = "#eb6834"
+SEQUENCIAL = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#2a78d6", "#1c5cab", "#104281", "#0d366b"]
 
-SUPERFICIE = "#1f2937"   # mesmo tom dos cartões
-TINTA = "#f3f4f6"
-TINTA_2 = "#d1d5db"
-TINTA_MUDA = "#9ca3af"
-GRADE = "#2d3a4d"
-EIXO = "#4b5563"
-FONTE = '"Segoe UI", Nunito, system-ui, -apple-system, sans-serif'
+SUPERFICIE = "#ffffff"
+TINTA = "#0f172a"
+TINTA_2 = "#475569"
+TINTA_MUDA = "#64748b"
+GRADE = "#eef0f4"
+EIXO = "#d5dae3"
+FONTE = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif'
 
 
 def _tema(fig: go.Figure, titulo: str, subtitulo: str | None = None, altura: int = 340) -> go.Figure:
@@ -28,7 +26,7 @@ def _tema(fig: go.Figure, titulo: str, subtitulo: str | None = None, altura: int
         paper_bgcolor=SUPERFICIE, plot_bgcolor=SUPERFICIE,
         font=dict(family=FONTE, size=12, color=TINTA_2),
         separators=",.",
-        hoverlabel=dict(bgcolor="#111827", bordercolor=EIXO, font=dict(family=FONTE, color=TINTA, size=13)),
+        hoverlabel=dict(bgcolor="white", bordercolor=EIXO, font=dict(family=FONTE, color=TINTA, size=13)),
         legend=dict(orientation="h", y=1.02, yanchor="bottom", x=1, xanchor="right",
                     font=dict(color=TINTA_2)),
         barcornerradius=4,
@@ -72,7 +70,7 @@ def abertos_vs_resolvidos(semanal: pd.DataFrame) -> go.Figure:
 def backlog(diario: pd.DataFrame) -> go.Figure:
     fig = go.Figure(go.Scatter(
         x=diario["data"], y=diario["backlog"], mode="lines", fill="tozeroy", showlegend=False,
-        line=dict(color=AZUL, width=2), fillcolor=AZUL_FAIXA,
+        line=dict(color=AZUL, width=2), fillcolor="rgba(42,120,214,0.10)",
         hovertemplate="%{x|%d/%m/%Y}<br>Em aberto: %{y}<extra></extra>"))
     fim = diario.iloc[-1]
     fig.add_scatter(x=[fim["data"]], y=[fim["backlog"]], mode="markers+text", showlegend=False,
@@ -150,7 +148,7 @@ def previsao_semanal(historico: pd.Series, previsao: pd.DataFrame) -> go.Figure:
     fig.add_scatter(x=x_faixa, y=[ultimo_y, *previsao["lim_sup"]], mode="lines",
                     line=dict(width=0), showlegend=False, hoverinfo="skip")
     fig.add_scatter(x=x_faixa, y=[ultimo_y, *previsao["lim_inf"]], mode="lines", line=dict(width=0),
-                    fill="tonexty", fillcolor=AZUL_FAIXA, name="Faixa provável (80%)",
+                    fill="tonexty", fillcolor="rgba(42,120,214,0.12)", name="Faixa provável (80%)",
                     hoverinfo="skip")
     fig.add_scatter(x=historico.index, y=historico.values, mode="lines", name="Realizado",
                     line=dict(color=AZUL, width=2),
