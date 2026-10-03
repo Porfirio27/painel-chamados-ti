@@ -9,7 +9,7 @@ e ficam em cache por 1 hora.
 import pandas as pd
 import streamlit as st
 
-from src import config, extract, graficos as g, transform
+from src import config, extract, graficos as g, previsao, transform
 
 st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide")
 
@@ -76,8 +76,8 @@ k[4].metric("Em aberto agora", int(base["aberto"].sum()),
             help="Chamados ainda não fechados (respeita os filtros de setor, categoria e prioridade).")
 
 # ---------------------------------------------------------------- abas
-aba_visao, aba_setores, aba_dados, aba_qualidade = st.tabs(
-    ["Visão geral", "Setores e categorias", "Dados", "Qualidade dos dados"])
+aba_visao, aba_setores, aba_previsao, aba_dados, aba_qualidade = st.tabs(
+    ["Visão geral", "Setores e categorias", "Previsões", "Dados", "Qualidade dos dados"])
 
 cfg = {"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]}
 
@@ -142,6 +142,56 @@ with aba_setores:
         "sla_pct": st.column_config.NumberColumn("SLA cumprido (%)", format="%.0f%%"),
         "categoria_principal": "Categoria mais frequente",
     })
+
+with aba_previsao:
+    # Usa só os filtros de setor/categoria/prioridade: o modelo precisa do histórico completo
+    res = previsao.prever(base)
+    if res is None:
+        st.info("Histórico insuficiente para prever com esses filtros (mínimo de 11 semanas com dados).")
+    else:
+        prox = res.previsao.iloc[0]
+        mes = res.previsao.head(4)
+        k = st.columns(4)
+        k[0].metric(f"Próxima semana ({prox['inicio_semana']:%d/%m})", f"{g.fmt(prox['previsao'], 0)} chamados",
+                    help=f"Faixa provável: {g.fmt(prox['lim_inf'], 0)} a {g.fmt(prox['lim_sup'], 0)}")
+        k[1].metric("Próximas 4 semanas", f"{g.fmt(mes['previsao'].sum(), 0)} chamados")
+        k[2].metric("Erro médio do modelo", f"± {g.fmt(res.erro_medio)} por semana",
+                    help=f"Medido prevendo semanas passadas. Equivale a {g.fmt(res.erro_pct, 0)}% da média semanal.")
+        melhora = (1 - res.erro_medio / res.erro_ingenuo) * 100
+        k[3].metric("Ganho sobre repetir a semana anterior", f"{g.fmt(melhora, 0)}%",
+                    help=f"Repetir a semana passada erraria ± {g.fmt(res.erro_ingenuo)} por semana.")
+
+        st.plotly_chart(g.previsao_semanal(res.historico, res.previsao), width="stretch", config=cfg)
+
+        c1, c2 = st.columns(2)
+        cat = previsao.por_categoria(base, res)
+        c1.plotly_chart(g.barras_horizontais(cat["categoria"], cat["previsao"], "Próximas 4 semanas por categoria",
+                                             "Chamados esperados, pela participação das últimas 12 semanas"),
+                        width="stretch", config=cfg)
+        dias = previsao.por_dia_semana(base, res)
+        c2.plotly_chart(g.colunas(dias["dia_semana"], dias["previsao"], "Próxima semana por dia",
+                                  "Chamados esperados em cada dia útil", casas=1),
+                        width="stretch", config=cfg)
+
+        tabela = res.previsao.assign(inicio_semana=res.previsao["inicio_semana"].dt.strftime("%d/%m/%Y"))
+        st.dataframe(tabela, hide_index=True, width="stretch", column_config={
+            "inicio_semana": "Semana de", "dias_uteis": "Dias úteis",
+            "previsao": st.column_config.NumberColumn("Previsão", format="%.0f"),
+            "lim_inf": st.column_config.NumberColumn("Mínimo provável", format="%.0f"),
+            "lim_sup": st.column_config.NumberColumn("Máximo provável", format="%.0f"),
+        })
+        with st.expander("Como a previsão é feita"):
+            st.markdown(f"""
+- Base: chamados abertos por semana, só semanas completas ({len(res.historico)} semanas).
+- Testamos {len(res.ranking)} modelos simples prevendo semanas que já aconteceram e escolhemos o que errou menos:
+  **{res.modelo}**.
+- Semanas com feriado recebem previsão proporcional aos dias úteis (feriados em `src/config.py`).
+- A faixa provável (80%) vem dos erros reais do modelo nesse teste e se alarga para semanas mais distantes.
+- Com poucos meses de histórico ainda não dá para captar sazonalidade anual (ex.: dezembro). A previsão
+  melhora à medida que os dados acumulam.
+""")
+            st.dataframe(res.ranking.assign(erro_medio=res.ranking["erro_medio"].round(2)), hide_index=True,
+                         column_config={"modelo": "Modelo", "erro_medio": "Erro médio (chamados/semana)"})
 
 with aba_dados:
     colunas = ["codigo", "criado_em", "resolvido_em", "status", "prioridade", "tipo", "categoria",

@@ -19,7 +19,9 @@ FUSO = "America/Sao_Paulo"
 
 # Expediente (hora inicial, hora final) em dias úteis — usado no tempo útil.
 EXPEDIENTE = (7, 17)
-FERIADOS: list[str] = []  # ex.: ["2026-09-07", "2026-10-12"]
+# Feriados nacionais (dias úteis a menos). Acrescente os municipais de Paracambi.
+FERIADOS: list[str] = ["2026-06-04", "2026-09-07", "2026-10-12", "2026-11-02",
+                       "2026-11-20", "2026-12-25", "2027-01-01"]
 
 # Metas de SLA em horas corridas, por prioridade.
 # Inferidas dos prazos que a API registrava no início (4h resposta / 24h resolução).

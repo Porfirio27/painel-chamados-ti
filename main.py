@@ -7,7 +7,7 @@ Uso:
 import json
 import sys
 
-from src import config, extract, load, transform
+from src import config, extract, load, previsao, transform
 
 
 def main() -> None:
@@ -28,6 +28,10 @@ def main() -> None:
                **transform.dimensoes(fato),
                **transform.agregar(fato),
                "qualidade": transform.checar_qualidade(fato)}
+    res = previsao.prever(fato)
+    if res is not None:
+        tabelas["previsao_semanal"] = res.previsao
+        tabelas["previsao_categoria"] = previsao.por_categoria(fato, res)
 
     print("3/3 Salvando em data/final")
     load.salvar(tabelas)

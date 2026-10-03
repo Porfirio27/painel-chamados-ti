@@ -135,3 +135,35 @@ def heatmap_dia_hora(fato: pd.DataFrame) -> go.Figure:
     fig.update_yaxes(autorange="reversed", showgrid=False)
     fig.update_xaxes(showline=False)
     return _tema(fig, "Quando os chamados são abertos", "Quantidade por dia da semana e hora (horário de Brasília)")
+
+
+# ---------------------------------------------------------------- previsão
+
+def previsao_semanal(historico: pd.Series, previsao: pd.DataFrame) -> go.Figure:
+    """Histórico (linha cheia) + previsão (tracejada, por ser projeção) com faixa de 80%."""
+    fig = go.Figure()
+    # faixa de incerteza: começa no último ponto real para a linha não "pular"
+    ultimo_x, ultimo_y = historico.index[-1], historico.iloc[-1]
+    x_faixa = [ultimo_x, *previsao["inicio_semana"]]
+    fig.add_scatter(x=x_faixa, y=[ultimo_y, *previsao["lim_sup"]], mode="lines",
+                    line=dict(width=0), showlegend=False, hoverinfo="skip")
+    fig.add_scatter(x=x_faixa, y=[ultimo_y, *previsao["lim_inf"]], mode="lines", line=dict(width=0),
+                    fill="tonexty", fillcolor="rgba(42,120,214,0.12)", name="Faixa provável (80%)",
+                    hoverinfo="skip")
+    fig.add_scatter(x=historico.index, y=historico.values, mode="lines", name="Realizado",
+                    line=dict(color=AZUL, width=2),
+                    hovertemplate="Semana de %{x|%d/%m}<br>Realizado: %{y}<extra></extra>")
+    texto = [f"{fmt(p, 0)} (entre {fmt(i, 0)} e {fmt(s, 0)})"
+             for p, i, s in zip(previsao["previsao"], previsao["lim_inf"], previsao["lim_sup"])]
+    fig.add_scatter(x=[ultimo_x, *previsao["inicio_semana"]], y=[ultimo_y, *previsao["previsao"]],
+                    mode="lines+markers", name="Previsão",
+                    line=dict(color=AZUL, width=2, dash="dash"),
+                    marker=dict(size=[0] + [8] * len(previsao), color=AZUL,
+                                line=dict(color=SUPERFICIE, width=2)),
+                    customdata=[""] + texto,
+                    hovertemplate="Semana de %{x|%d/%m}<br>Previsão: %{customdata}<extra></extra>")
+    fig.update_xaxes(tickformat="%d/%m")
+    fig.update_yaxes(rangemode="tozero")
+    return _tema(fig, "Previsão de chamados por semana",
+                 "Linha tracejada = previsão; área = faixa onde o valor deve cair em 8 de cada 10 semanas",
+                 altura=380)
