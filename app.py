@@ -35,9 +35,9 @@ def grafico(fig) -> None:
         st.plotly_chart(fig, width="stretch", config=cfg)
 
 
-# ---------------------------------------------------------------- cabeçalho e filtros
-estilo.cabecalho("Chamados de TI", "Volume, tempo de atendimento, SLA e previsão de demanda",
-                 f"Atualizado em {atualizado:%d/%m/%Y às %H:%M}")
+# ---------------------------------------------------------------- barra superior e filtros
+estilo.barra_superior("ADMINISTRAÇÃO", f"Dados atualizados em {atualizado:%d/%m/%Y às %H:%M}")
+estilo.titulo("Dashboard")
 
 dmin, dmax = fato["data"].min(), fato["data"].max()
 with st.container(key="filtros"):
@@ -77,15 +77,19 @@ def medidas(d: pd.DataFrame) -> dict:
     return {"n": len(d),
             "med": d["tempo_resolucao_h"].median(),
             "util": d["tempo_resolucao_util_h"].median(),
+            "resp": d["tempo_primeira_resposta_h"].median(),
             "sla": sla.mean() * 100 if len(sla) else None}
 
 
-atual, anterior = medidas(df), (medidas(ant) if len(ant) else {"n": None, "med": None, "util": None, "sla": None})
-vs = "vs período anterior" if len(ant) else None
+vazio = dict.fromkeys(["n", "med", "util", "resp", "sla"])
+atual, anterior = medidas(df), (medidas(ant) if len(ant) else vazio)
 
 
-def horas(v) -> str:
-    return g.fmt(v) if v == v and v is not None else "–"
+def tempo(horas: float) -> tuple[str, str]:
+    """Valor e unidade: minutos abaixo de 1h, horas acima."""
+    if horas is None or horas != horas:
+        return "–", ""
+    return (g.fmt(horas * 60, 0), "min") if horas < 1 else (g.fmt(horas), "h")
 
 
 d_n, t_n = estilo.delta(atual["n"], anterior["n"], pct=True, neutro=True)
@@ -93,25 +97,36 @@ d_med, t_med = estilo.delta(atual["med"], anterior["med"], 1, "h", menor_melhor=
 d_util, t_util = estilo.delta(atual["util"], anterior["util"], 1, "h", menor_melhor=True)
 d_sla, t_sla = estilo.delta(atual["sla"], anterior["sla"], 0, " p.p.")
 abertos_agora = int(base["aberto"].sum())
+resolvidos_n = int(df["resolvido_em"].notna().sum())
+estourados = int((df["sla_resolucao_cumprido"] == False).sum())  # noqa: E712 (coluna "boolean" com NA)
+pct_resp = df["tem_primeira_resposta"].mean() * 100
 
 estilo.kpis([
-    estilo.kpi("confirmation_number", "Chamados no período", f"{atual['n']:,}".replace(",", "."),
-               delta=d_n, tom=t_n, nota=vs, ajuda="Chamados abertos no período selecionado"),
-    estilo.kpi("schedule", "Resolução mediana", horas(atual["med"]), "h", d_med, t_med, vs,
-               ajuda="Tempo corrido entre abertura e resolução. Metade dos chamados é resolvida em menos tempo."),
-    estilo.kpi("work_history", "Resolução em horário útil", horas(atual["util"]), "h", d_util, t_util, vs,
-               ajuda=f"Conta só dias úteis das {config.EXPEDIENTE[0]}h às {config.EXPEDIENTE[1]}h."),
-    estilo.kpi("verified", "SLA cumprido", g.fmt(atual["sla"], 0) if atual["sla"] is not None else "–", "%",
-               d_sla, t_sla, vs, barra=atual["sla"],
-               ajuda=f"Meta em horas corridas: {config.SLA_RESOLUCAO_HORAS}. Recalculado — o status da API não é confiável."),
-    estilo.kpi("inbox", "Em aberto agora", str(abertos_agora), nota="aguardando resolução",
+    estilo.kpi("Total", f"{atual['n']:,}".replace(",", "."), delta=d_n, tom=t_n,
+               ajuda="Chamados abertos no período selecionado"),
+    estilo.kpi("Em aberto", str(abertos_agora), cor="amarelo",
                ajuda="Chamados ainda não fechados (respeita os filtros de setor, categoria e prioridade)."),
-])
+    estilo.kpi("Resolvidos", f"{resolvidos_n:,}".replace(",", "."), cor="verde",
+               nota="Com data de resolução registrada no período."),
+    estilo.kpi("SLA cumprido", g.fmt(atual["sla"], 0) if atual["sla"] is not None else "–", "%", cor="azul",
+               delta=d_sla, tom=t_sla, barra=atual["sla"],
+               ajuda=f"Meta em horas corridas: {config.SLA_RESOLUCAO_HORAS}."),
+    estilo.kpi("SLA estourado", str(estourados), cor="vermelho",
+               nota=f"Acima da meta de {config.SLA_RESOLUCAO_HORAS['media']}h (recalculado; a API marca 0).",
+               ajuda="O status de SLA da API está sempre 'ok', por isso o valor é recalculado."),
+], colunas=5)
+estilo.kpis([
+    estilo.kpi("Resolução (mediana)", *tempo(atual["med"]), delta=d_med, tom=t_med,
+               ajuda="Tempo corrido entre abertura e resolução. Metade dos chamados é resolvida em menos tempo."),
+    estilo.kpi("Resolução em horário útil (mediana)", *tempo(atual["util"]), delta=d_util, tom=t_util,
+               ajuda=f"Conta só dias úteis das {config.EXPEDIENTE[0]}h às {config.EXPEDIENTE[1]}h."),
+    estilo.kpi("1ª resposta (mediana)", *tempo(atual["resp"]), cor="roxo",
+               nota=f"Registrada em só {g.fmt(pct_resp, 0)}% dos chamados."),
+], colunas=3)
 
 # ---------------------------------------------------------------- abas
 aba_visao, aba_setores, aba_previsao, aba_dados, aba_qualidade = st.tabs(
-    [":material/dashboard: Visão geral", ":material/apartment: Setores e categorias",
-     ":material/trending_up: Previsões", ":material/table_rows: Dados", ":material/fact_check: Qualidade"])
+    ["Visão geral", "Setores e categorias", "Previsões", "Dados", "Qualidade"])
 
 with aba_visao:
     agg = transform.agregar(base)
@@ -197,17 +212,17 @@ with aba_previsao:
         total4 = mes["previsao"].sum()
         margem4 = (((mes["lim_sup"] - mes["previsao"]) ** 2).sum()) ** 0.5
         estilo.kpis([
-            estilo.kpi("event_upcoming", f"Próxima semana · {prox['inicio_semana']:%d/%m}",
-                       g.fmt(prox["previsao"], 0), " chamados",
-                       nota=f"entre {g.fmt(prox['lim_inf'], 0)} e {g.fmt(prox['lim_sup'], 0)}"),
-            estilo.kpi("date_range", "Próximas 4 semanas", g.fmt(mes["previsao"].sum(), 0), " chamados",
-                       nota=f"entre {g.fmt(max(total4 - margem4, 0), 0)} e {g.fmt(total4 + margem4, 0)}"),
-            estilo.kpi("target", "Erro médio do modelo", f"±{g.fmt(res.erro_medio)}", " /semana",
+            estilo.kpi(f"Próxima semana ({prox['inicio_semana']:%d/%m})", g.fmt(prox["previsao"], 0),
+                       " chamados", cor="azul",
+                       nota=f"Entre {g.fmt(prox['lim_inf'], 0)} e {g.fmt(prox['lim_sup'], 0)}"),
+            estilo.kpi("Próximas 4 semanas", g.fmt(total4, 0), " chamados", cor="azul",
+                       nota=f"Entre {g.fmt(max(total4 - margem4, 0), 0)} e {g.fmt(total4 + margem4, 0)}"),
+            estilo.kpi("Erro médio do modelo", f"±{g.fmt(res.erro_medio)}", " /semana",
                        nota=f"{g.fmt(res.erro_pct, 0)}% da média semanal",
                        ajuda="Medido prevendo semanas que já aconteceram."),
-            estilo.kpi("insights", "Ganho sobre o método simples", g.fmt(melhora, 0), "%",
-                       nota=f"repetir a semana anterior erraria ±{g.fmt(res.erro_ingenuo)}"),
-        ])
+            estilo.kpi("Ganho sobre o método simples", g.fmt(melhora, 0), "%", cor="verde",
+                       nota=f"Repetir a semana anterior erraria ±{g.fmt(res.erro_ingenuo)}"),
+        ], colunas=4)
 
         grafico(g.previsao_semanal(res.historico, res.previsao))
 
@@ -251,7 +266,8 @@ with aba_dados:
                         resolvido_em=tabela["resolvido_em"].dt.tz_localize(None)) \
         .to_csv(index=False, sep=";", decimal=",", encoding="utf-8-sig")
     c1, c2 = st.columns([4, 1], vertical_alignment="center")
-    c1.markdown(f'<div class="nota">{len(tabela)} chamados com os filtros atuais</div>', unsafe_allow_html=True)
+    with c1:
+        estilo.nota(f"{len(tabela)} chamados com os filtros atuais")
     c2.download_button("Baixar CSV", csv.encode("utf-8-sig"), "chamados_filtrados.csv", "text/csv",
                        icon=":material/download:", width="stretch")
     with estilo.card():
@@ -267,8 +283,7 @@ with aba_dados:
         })
 
 with aba_qualidade:
-    st.markdown('<div class="nota">Problemas encontrados nos dados da API. Nada foi apagado — '
-                'servem para corrigir na origem.</div>', unsafe_allow_html=True)
+    estilo.nota("Problemas encontrados nos dados da API. Nada foi apagado — servem para corrigir na origem.")
     q = qualidade[qualidade["codigo"].isin(df["codigo"])]
     resumo = q["problema"].value_counts()
     descricoes = {
