@@ -122,6 +122,9 @@ with aba_visao:
         "resolvidos": semana_resolucao.value_counts(),
     }).fillna(0).astype(int).sort_index().rename_axis("inicio_semana").reset_index())
     semanal = semanal[(semanal["inicio_semana"] >= ini - pd.Timedelta(days=6)) & (semanal["inicio_semana"] <= fim)]
+    # Semana em andamento fica de fora: parcial, pareceria uma queda de demanda
+    hoje = pd.Timestamp.now(tz=config.FUSO).date()
+    semanal = semanal[semanal["inicio_semana"] < hoje - pd.Timedelta(days=hoje.weekday())]
     diario = agg["agg_diario"]
     diario = diario[(diario["data"] >= ini) & (diario["data"] <= fim)]
 

@@ -96,7 +96,7 @@ def montar_fato(chamados: list[dict]) -> pd.DataFrame:
         "fechado_em": df["fechado_em"],                  # atenção: houve fechamento em lote
     })
     # Toner era categoria própria; vira subcategoria de Impressora.
-    toner = df["categoria"].eq("Solicitar Tonner") & fato["subcategoria"].eq("Não informada")
+    toner = df["categoria"].isin(["Solicitar Tonner", "Solicitar Toner"]) & fato["subcategoria"].eq("Não informada")
     fato.loc[toner, "subcategoria"] = "Toner"
 
     # Dimensões de tempo (sempre no fuso local; o campo "dia" da API é em UTC)

@@ -33,6 +33,7 @@ SLA_PRIMEIRA_RESPOSTA_HORAS = {"alta": 4, "media": 4, "baixa": 96}
 MAPA_CATEGORIA = {
     "Acesso": "Acesso e Permissões",
     "Solicitar Tonner": "Impressora e Periféricos",
+    "Solicitar Toner": "Impressora e Periféricos",   # grafia nova da API (out/2026)
     # "Solicitação" e "Incidente" são tipos, não categorias.
     "Solicitação": "Não classificado",
     "Incidente": "Não classificado",
