@@ -15,7 +15,7 @@ from src import config, estilo, extract, graficos as g, previsao, transform
 st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
 
 # Tema claro/escuro: escolha guardada na URL (?tema=escuro) para valer ao recarregar ou compartilhar
-TEMAS = {"claro": ":material/light_mode: Claro", "escuro": ":material/dark_mode: Escuro"}
+TEMAS = {"claro": ":material/light_mode:", "escuro": ":material/dark_mode:"}  # só os ícones
 if "tema" not in st.session_state:
     st.session_state.tema = st.query_params.get("tema", "claro") if st.query_params.get("tema") in TEMAS else "claro"
 # Menu lateral: página escolhida também fica na URL (?pagina=previsoes)

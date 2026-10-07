@@ -11,8 +11,12 @@ TOKENS = {
         "muda": "#64748b", "azul": "#2a78d6", "azul-texto": "#1c5cab", "azul-fundo": "#e8f1fc",
         "verde": "#0f8a3c", "verde-fundo": "#e7f6ec", "vermelho": "#c53030", "vermelho-fundo": "#fdecec",
         "neutro-fundo": "#eef1f5", "abas": "#e9edf3", "aba-hover": "rgba(255,255,255,.6)",
-        "campo": "#f3f2ee", "sombra": "rgba(15,23,42,.08)",
-        "hero": "linear-gradient(120deg, #0d366b 0%, #1c5cab 55%, #2a78d6 100%)",
+        "campo": "#eef2f8", "sombra": "rgba(15,23,42,.08)",
+        "hero": "linear-gradient(120deg, #0d366b 0%, #1c5cab 40%, #2a78d6 70%, #1c5cab 100%)",
+        "vidro": "rgba(255,255,255,.72)", "vidro-borda": "rgba(255,255,255,.9)",
+        "mancha-1": "rgba(42,120,214,.38)", "mancha-2": "rgba(34,184,230,.30)", "mancha-3": "rgba(124,92,246,.24)",
+        "grade": "rgba(15,23,42,.045)",
+        "botao": "linear-gradient(135deg, #2a78d6 0%, #3b82f6 50%, #22b8e6 100%)", "botao-sombra": "rgba(42,120,214,.45)",
     },
     "escuro": {
         "bg": "#0f1623", "card": "#1b2433", "borda": "#2a3546", "tinta": "#e8edf5", "tinta-2": "#c3cddb",
@@ -20,7 +24,11 @@ TOKENS = {
         "verde": "#4ade80", "verde-fundo": "rgba(74,222,128,.12)", "vermelho": "#f87171",
         "vermelho-fundo": "rgba(248,113,113,.12)", "neutro-fundo": "rgba(148,163,184,.14)",
         "abas": "#222d3e", "aba-hover": "rgba(255,255,255,.06)", "campo": "#232e40", "sombra": "rgba(0,0,0,.35)",
-        "hero": "linear-gradient(120deg, #0a2346 0%, #164b8f 55%, #2366bb 100%)",
+        "hero": "linear-gradient(120deg, #0a2346 0%, #164b8f 40%, #2366bb 70%, #164b8f 100%)",
+        "vidro": "rgba(22,30,45,.68)", "vidro-borda": "rgba(255,255,255,.07)",
+        "mancha-1": "rgba(57,135,229,.50)", "mancha-2": "rgba(34,211,238,.24)", "mancha-3": "rgba(139,92,246,.38)",
+        "grade": "rgba(255,255,255,.035)",
+        "botao": "linear-gradient(135deg, #2a78d6 0%, #3b82f6 50%, #22b8e6 100%)", "botao-sombra": "rgba(59,130,246,.45)",
     },
 }
 
@@ -29,12 +37,31 @@ CSS = """
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,1&display=swap");
 html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inter", system-ui, sans-serif !important; }
 .stApp { background: var(--bg); color: var(--tinta); }
+/* Fundo animado: manchas de cor desfocadas que se movem devagar + grade sutil */
+.stApp::before { content: ""; position: fixed; inset: -25%; z-index: 0; pointer-events: none; will-change: transform;
+  background: radial-gradient(36% 42% at 18% 22%, var(--mancha-1), transparent 70%),
+              radial-gradient(30% 36% at 82% 18%, var(--mancha-2), transparent 70%),
+              radial-gradient(40% 44% at 70% 82%, var(--mancha-3), transparent 70%),
+              radial-gradient(28% 30% at 22% 80%, var(--mancha-2), transparent 70%);
+  filter: blur(40px); animation: flutuar 26s ease-in-out infinite alternate; }
+.stApp::after { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: linear-gradient(var(--grade) 1px, transparent 1px), linear-gradient(90deg, var(--grade) 1px, transparent 1px);
+  background-size: 44px 44px; mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 80%); }
+@keyframes flutuar {
+  0%   { transform: translate3d(-4%, -3%, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(3%, 2%, 0) rotate(6deg) scale(1.08); }
+  100% { transform: translate3d(5%, -2%, 0) rotate(-4deg) scale(1.03); } }
+@keyframes brilho { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+[data-testid="stAppViewContainer"], [data-testid="stMain"] { background: transparent !important; position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .stApp::before, .hero { animation: none !important; } }
 /* Barra do topo transparente e "vazada" (não bloqueia cliques), mas o botão de reabrir o menu continua */
 [data-testid="stHeader"] { background: transparent; pointer-events: none; }
 [data-testid="stHeader"] * { pointer-events: none; }
 [data-testid="stExpandSidebarButton"], [data-testid="stExpandSidebarButton"] * { pointer-events: auto !important; }
 /* Menu lateral */
-[data-testid="stSidebar"] { background: var(--card); border-right: 1px solid var(--borda); }
+[data-testid="stSidebar"] { background: var(--vidro); border-right: 1px solid var(--vidro-borda);
+  backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); }
 [data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding-top: 8px; }
 .marca { display: flex; align-items: center; gap: 12px; padding: 0 6px 18px; border-bottom: 1px solid var(--borda); }
 .marca .logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--hero);
@@ -52,11 +79,21 @@ html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inte
 [data-testid="stRadioOption"] > div > div:first-child { display: none; }  /* esconde a bolinha do rádio */
 [data-testid="stRadioOption"] p { font-size: 14px; font-weight: 600; color: var(--tinta-2) !important; }
 [data-testid="stRadioOption"] p span[role="img"] { margin-right: 6px; color: var(--muda); }
-[data-testid="stRadioOption"]:hover { background: var(--neutro-fundo); }
-[data-testid="stRadioOption"][data-selected="true"] { background: var(--azul-fundo); box-shadow: inset 3px 0 0 var(--azul); }
+[data-testid="stRadioOption"] { transition: background .2s, transform .2s; }
+[data-testid="stRadioOption"]:hover { background: var(--neutro-fundo); transform: translateX(2px); }
+[data-testid="stRadioOption"][data-selected="true"] { background: var(--botao); box-shadow: 0 8px 20px -10px var(--botao-sombra); }
 [data-testid="stRadioOption"][data-selected="true"] p, [data-testid="stRadioOption"][data-selected="true"] p span[role="img"] {
-  color: var(--azul-texto) !important; }
-[class*="st-key-tema_seletor"] [data-testid="stButtonGroup"] { padding: 0 4px; }
+  color: #fff !important; }
+/* Seletor de tema: só ícones, em pílula */
+[class*="st-key-tema_seletor"] [data-testid="stButtonGroup"] { padding: 0 6px; }
+[class*="st-key-tema_seletor"] [role="radiogroup"] { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px;
+  background: var(--neutro-fundo); border: 1px solid var(--borda); }
+[class*="st-key-tema_seletor"] button { width: 44px; height: 36px; min-height: 36px; border-radius: 999px !important; border: none !important;
+  background: transparent !important; color: var(--muda) !important; transition: background .2s, color .2s, box-shadow .2s; }
+[class*="st-key-tema_seletor"] button:hover { color: var(--tinta) !important; }
+[class*="st-key-tema_seletor"] button [data-testid="stIconMaterial"] { font-size: 20px; }
+[class*="st-key-tema_seletor"] button[aria-checked="true"] { background: var(--botao) !important; color: #fff !important;
+  box-shadow: 0 6px 16px -6px var(--botao-sombra); }
 @media (max-width: 640px) { .block-container { padding-top: 3.4rem; } }  /* espaço para o botão do menu */
 .titulo-pagina { font-size: 22px; font-weight: 700; color: var(--tinta); letter-spacing: -.01em; margin: 4px 2px 6px; }
 /* Esconde menu e deploy do Streamlit, mas mantém a barra (ela guarda o botão de reabrir o menu lateral) */
@@ -65,8 +102,9 @@ html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inte
 .block-container { padding-top: 1.4rem; padding-bottom: 3rem; max-width: 1440px; }
 /* Cabeçalho */
 .hero { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-  background: var(--hero); border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; color: #fff;
-  box-shadow: 0 10px 30px -12px rgba(13, 54, 107, .45); }
+  background: var(--hero); background-size: 220% 100%; animation: brilho 14s ease-in-out infinite alternate;
+  border-radius: 22px; padding: 26px 30px; margin-bottom: 18px; color: #fff;
+  box-shadow: 0 18px 40px -18px rgba(13, 54, 107, .6), inset 0 1px 0 rgba(255,255,255,.18); }
 .hero .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; font-weight: 600; }
 .hero h1 { font-size: 30px; font-weight: 700; margin: 4px 0 2px; color: #fff; padding: 0; letter-spacing: -.02em; }
 .hero p { margin: 0; opacity: .85; font-size: 14px; }
@@ -74,21 +112,18 @@ html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inte
   border: 1px solid rgba(255,255,255,.22); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 500;
   backdrop-filter: blur(6px); }
 .hero .ponto { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
-/* Seletor de tema: opção ativa destacada nos dois temas */
-[class*="st-key-tema_seletor"] button[aria-checked="true"] { background: var(--azul-fundo) !important; color: var(--azul-texto) !important;
-  border-color: var(--azul) !important; }
-[class*="st-key-tema_seletor"] button[aria-checked="true"] p { color: var(--azul-texto) !important; }
-/* Cartões de conteúdo (st.container com key "card_*") */
-[class*="st-key-card_"] { background: var(--card); border: 1px solid var(--borda) !important; border-radius: 16px !important;
-  box-shadow: 0 1px 2px var(--sombra), 0 4px 14px -6px var(--sombra); padding: 6px 8px; }
-[class*="st-key-filtros"] { background: var(--card); border: 1px solid var(--borda) !important; border-radius: 16px !important;
-  padding: 4px 10px 8px; margin-bottom: 4px; box-shadow: 0 1px 2px var(--sombra); }
+/* Cartões de vidro (st.container com key "card_*"), filtros e indicadores */
+[class*="st-key-card_"], [class*="st-key-filtros"], .kpi {
+  background: var(--vidro) !important; border: 1px solid var(--vidro-borda) !important;
+  backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 1px 2px var(--sombra), 0 12px 32px -16px var(--sombra) !important; }
+[class*="st-key-card_"] { border-radius: 18px !important; padding: 6px 8px; }
+[class*="st-key-filtros"] { border-radius: 18px !important; padding: 4px 10px 8px; margin-bottom: 4px; }
 [class*="st-key-filtros"] label p { font-size: 12px !important; font-weight: 600; color: var(--muda); text-transform: uppercase; letter-spacing: .04em; }
 /* Indicadores */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 14px; margin: 14px 0 18px; }
-.kpi { background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 16px 18px;
-  box-shadow: 0 1px 2px var(--sombra), 0 4px 14px -6px var(--sombra); transition: transform .15s, box-shadow .15s; }
-.kpi:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -10px var(--sombra); }
+.kpi { border-radius: 18px; padding: 16px 18px; transition: transform .2s, box-shadow .2s; }
+.kpi:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -18px var(--botao-sombra) !important; }
 .kpi .topo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .kpi .icone { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--azul-fundo); color: var(--azul); }
 .kpi .icone span { font-family: "Material Symbols Rounded"; font-size: 20px; line-height: 1; font-variation-settings: "FILL" 1; }
@@ -116,7 +151,17 @@ html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inte
 .secao { font-size: 13px; font-weight: 700; color: var(--muda); text-transform: uppercase; letter-spacing: .06em; margin: 10px 2px 8px; }
 .nota { font-size: 13px; color: var(--muda); margin: 2px 4px 10px; }
 [data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
-.stDownloadButton button, .stButton button { border-radius: 10px; font-weight: 600; }
+/* Botões: degradê, sombra colorida e elevação ao passar o mouse */
+.stButton button, .stDownloadButton button {
+  background: var(--botao) !important; background-size: 160% 100% !important; color: #fff !important; border: none !important;
+  border-radius: 12px !important; font-weight: 600 !important; letter-spacing: .01em;
+  box-shadow: 0 8px 20px -10px var(--botao-sombra), inset 0 1px 0 rgba(255,255,255,.25) !important;
+  transition: transform .18s, box-shadow .18s, background-position .4s !important; }
+.stButton button p, .stDownloadButton button p, .stButton button span, .stDownloadButton button span { color: #fff !important; }
+.stButton button:hover, .stDownloadButton button:hover { transform: translateY(-2px); background-position: 100% 0 !important;
+  box-shadow: 0 14px 28px -12px var(--botao-sombra), inset 0 1px 0 rgba(255,255,255,.25) !important; }
+.stButton button:active, .stDownloadButton button:active { transform: translateY(0) scale(.98); }
+[data-testid="stExpander"] details { border-radius: 14px !important; background: var(--vidro); border-color: var(--vidro-borda) !important; }
 </style>
 """
 
@@ -142,14 +187,7 @@ CSS_ESCURO = """
 [role="option"], [role="option"] *, [role="dialog"] *, [role="gridcell"] * { color: var(--tinta) !important; }
 [role="option"]:hover, [role="option"][data-focused], [role="option"][aria-selected="true"] { background: var(--campo) !important; }
 [role="gridcell"] [data-selected], [role="gridcell"] [aria-selected="true"] { background: var(--azul) !important; color: #fff !important; }
-.stButton button, .stDownloadButton button, [data-testid="stBaseButton-secondary"] {
-  background: var(--card) !important; color: var(--tinta) !important; border-color: var(--borda) !important; }
-.stButton button:hover, .stDownloadButton button:hover { border-color: var(--azul) !important; color: var(--azul-texto) !important; }
-[data-testid="stExpander"] details { background: var(--card); border-color: var(--borda) !important; }
 [data-testid="stAlert"] { background: var(--campo) !important; color: var(--tinta) !important; }
-[data-testid="stButtonGroup"] button { background: var(--card) !important; color: var(--tinta-2) !important; border-color: var(--borda) !important; }
-[data-testid="stButtonGroup"] button[aria-checked="true"] {
-  background: var(--azul-fundo) !important; color: var(--azul-texto) !important; }
 /* As tabelas do Streamlit são desenhadas em canvas: inverter as cores é o jeito de deixá-las escuras */
 [data-testid="stDataFrame"] { filter: invert(.88) hue-rotate(180deg); }
 </style>

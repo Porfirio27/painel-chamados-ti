@@ -44,7 +44,7 @@ def _tema(fig: go.Figure, titulo: str, subtitulo: str | None = None, altura: int
         title=dict(text=texto, x=0.01, xanchor="left", y=0.97, yanchor="top", font=dict(size=15, color=c['tinta'])),
         height=altura,
         margin=dict(l=12, r=28, t=78 if subtitulo else 56, b=12),
-        paper_bgcolor=c['superficie'], plot_bgcolor=c['superficie'],
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",  # transparente: o cartão de vidro aparece
         font=dict(family=FONTE, size=12, color=c['tinta_2']),
         separators=",.",
         hoverlabel=dict(bgcolor=c['hover'], bordercolor=c['eixo'], font=dict(family=FONTE, color=c['tinta'], size=13)),
@@ -152,7 +152,7 @@ def heatmap_dia_hora(fato: pd.DataFrame) -> go.Figure:
               .reindex(index=dias, columns=horas, fill_value=0))
     tabela = tabela.loc[(tabela.sum(axis=1) > 0) | tabela.index.isin(dias[:5])]  # oculta fim de semana vazio
     seq = c["sequencial"]
-    escala = [[0, c["superficie"]], [1e-9, seq[0]]] + \
+    escala = [[0, "rgba(0,0,0,0)"], [1e-9, seq[0]]] + \
              [[(i + 1) / (len(seq) - 1), cor] for i, cor in enumerate(seq[1:])]
     fig = go.Figure(go.Heatmap(
         z=tabela.values, x=[f"{h}h" for h in tabela.columns], y=tabela.index,
