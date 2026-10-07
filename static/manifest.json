@@ -1,0 +1,15 @@
+{
+  "name": "Chamados de TI",
+  "short_name": "Chamados TI",
+  "description": "Painel de análise dos chamados de TI",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1623",
+  "theme_color": "#1c5cab",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

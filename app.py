@@ -6,13 +6,37 @@ Uso:
 Os dados vêm direto da API (chave em API_KEY no .env ou nos secrets do Streamlit Cloud)
 e ficam em cache por 1 hora.
 """
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src import config, estilo, extract, graficos as g, previsao, relatorio, transform
 
 # "auto": menu aberto no computador e recolhido no celular
-st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
+st.set_page_config(page_title="Chamados de TI", page_icon=str(Path(__file__).parent / "static" / "favicon.png"),
+                   layout="wide", initial_sidebar_state="auto")
+
+# Ícone ao instalar no celular ("Adicionar à tela inicial"): o Streamlit não tem opção para isso,
+# então um script coloca no <head> o manifest e o apple-touch-icon servidos de static/
+components.html("""<script>
+const d = window.parent.document, raiz = window.parent.location.origin + "/app/static/";
+const tags = [
+  ["link", {id: "app-manifest", rel: "manifest", href: raiz + "manifest.json"}],
+  ["link", {id: "app-apple-icon", rel: "apple-touch-icon", href: raiz + "apple-touch-icon.png"}],
+  ["meta", {id: "app-tema", name: "theme-color", content: "#1c5cab"}],
+  ["meta", {id: "app-titulo", name: "apple-mobile-web-app-title", content: "Chamados TI"}],
+  ["meta", {id: "app-capaz", name: "apple-mobile-web-app-capable", content: "yes"}],
+  ["meta", {id: "app-capaz-android", name: "mobile-web-app-capable", content: "yes"}],
+];
+for (const [tag, attrs] of tags) {
+  if (d.getElementById(attrs.id)) continue;
+  const el = d.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  d.head.appendChild(el);
+}
+</script>""", height=0)
 
 # Tema claro/escuro: escolha guardada na URL (?tema=escuro) para valer ao recarregar ou compartilhar
 TEMAS = {"claro": ":material/light_mode:", "escuro": ":material/dark_mode:"}  # só os ícones

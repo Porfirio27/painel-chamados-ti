@@ -8,3 +8,7 @@ font = "sans serif"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+# Serve a pasta static/ em /app/static/ (ícones e manifest.json do app)
+enableStaticServing = true
