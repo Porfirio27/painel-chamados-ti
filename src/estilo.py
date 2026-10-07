@@ -95,9 +95,6 @@ html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inte
 [class*="st-key-tema_seletor"] button[aria-checked="true"] { background: var(--botao) !important; color: #fff !important;
   box-shadow: 0 6px 16px -6px var(--botao-sombra); }
 @media (max-width: 640px) { .block-container { padding-top: 3.4rem; } }  /* espaço para o botão do menu */
-/* O script dos ícones (iframe de altura 0) não ocupa espaço no layout */
-[data-testid="stElementContainer"]:has(> iframe[data-testid="stIFrame"][height="0"]) {
-  position: absolute; width: 0; height: 0; overflow: hidden; }
 .titulo-pagina { font-size: 22px; font-weight: 700; color: var(--tinta); letter-spacing: -.01em; margin: 4px 2px 6px; }
 /* Esconde menu e deploy do Streamlit, mas mantém a barra (ela guarda o botão de reabrir o menu lateral) */
 [data-testid="stMainMenu"], [data-testid="stAppDeployButton"], [data-testid="stToolbarActions"],

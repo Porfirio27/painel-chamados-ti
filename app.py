@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 
 from src import config, estilo, extract, graficos as g, previsao, relatorio, transform
 
@@ -19,9 +18,9 @@ st.set_page_config(page_title="Chamados de TI", page_icon=str(Path(__file__).par
                    layout="wide", initial_sidebar_state="auto")
 
 # Ícone ao instalar no celular ("Adicionar à tela inicial"): o Streamlit não tem opção para isso,
-# então um script coloca no <head> o manifest e o apple-touch-icon servidos de static/
-components.html("""<script>
-const d = window.parent.document, raiz = window.parent.location.origin + "/app/static/";
+# então um script coloca no <head> o manifest e o apple-touch-icon servidos de static/ (nosso próprio código)
+st.html("""<script>
+const d = document, raiz = location.origin + "/app/static/";
 const tags = [
   ["link", {id: "app-manifest", rel: "manifest", href: raiz + "manifest.json"}],
   ["link", {id: "app-apple-icon", rel: "apple-touch-icon", href: raiz + "apple-touch-icon.png"}],
@@ -36,7 +35,7 @@ for (const [tag, attrs] of tags) {
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
   d.head.appendChild(el);
 }
-</script>""", height=0)
+</script>""", unsafe_allow_javascript=True)
 
 # Tema claro/escuro: escolha guardada na URL (?tema=escuro) para valer ao recarregar ou compartilhar
 TEMAS = {"claro": ":material/light_mode:", "escuro": ":material/dark_mode:"}  # só os ícones
