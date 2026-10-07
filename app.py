@@ -11,17 +11,36 @@ import streamlit as st
 
 from src import config, estilo, extract, graficos as g, previsao, transform
 
-st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide")
+# "auto": menu aberto no computador e recolhido no celular
+st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
 
 # Tema claro/escuro: escolha guardada na URL (?tema=escuro) para valer ao recarregar ou compartilhar
 TEMAS = {"claro": ":material/light_mode: Claro", "escuro": ":material/dark_mode: Escuro"}
 if "tema" not in st.session_state:
     st.session_state.tema = st.query_params.get("tema", "claro") if st.query_params.get("tema") in TEMAS else "claro"
-_, canto = st.columns([5, 1])
-with canto.container(key="tema_seletor"):
-    tema = st.segmented_control("Tema", list(TEMAS), format_func=TEMAS.get, key="tema",
-                                label_visibility="collapsed") or "claro"
+# Menu lateral: página escolhida também fica na URL (?pagina=previsoes)
+PAGINAS = {
+    "visao": ":material/dashboard: Visão geral",
+    "setores": ":material/apartment: Setores e categorias",
+    "previsoes": ":material/trending_up: Previsões",
+    "dados": ":material/table_rows: Dados",
+    "qualidade": ":material/fact_check: Qualidade",
+}
+if "pagina" not in st.session_state:
+    st.session_state.pagina = st.query_params.get("pagina") if st.query_params.get("pagina") in PAGINAS else "visao"
+
+with st.sidebar:
+    st.html('<div class="marca"><span class="logo">insights</span>'
+            '<div><b>Chamados de TI</b><small>Painel de análise</small></div></div>')
+    st.html('<div class="menu-titulo">Menu</div>')
+    pagina = st.radio("Página", list(PAGINAS), format_func=PAGINAS.get, key="pagina",
+                      label_visibility="collapsed")
+    st.html('<div class="menu-titulo">Aparência</div>')
+    with st.container(key="tema_seletor"):
+        tema = st.segmented_control("Tema", list(TEMAS), format_func=TEMAS.get, key="tema",
+                                    label_visibility="collapsed") or "claro"
 st.query_params["tema"] = tema
+st.query_params["pagina"] = pagina
 estilo.aplicar(tema)
 g.usar_tema(tema)
 
@@ -120,11 +139,10 @@ estilo.kpis([
 ])
 
 # ---------------------------------------------------------------- abas
-aba_visao, aba_setores, aba_previsao, aba_dados, aba_qualidade = st.tabs(
-    [":material/dashboard: Visão geral", ":material/apartment: Setores e categorias",
-     ":material/trending_up: Previsões", ":material/table_rows: Dados", ":material/fact_check: Qualidade"])
+# ---------------------------------------------------------------- página escolhida no menu
+estilo.titulo_pagina(PAGINAS[pagina].split(": ", 1)[1])
 
-with aba_visao:
+if pagina == "visao":
     agg = transform.agregar(base)
     r = df["resolvido_em"].dropna()
     semana_resolucao = (r.dt.normalize() - pd.to_timedelta(r.dt.dayofweek, unit="D")).dt.date
@@ -172,7 +190,7 @@ with aba_visao:
         grafico(g.colunas(faixas.index, faixas.values, "Tempo até a resolução",
                           "Chamados por faixa (horas corridas)"))
 
-with aba_setores:
+if pagina == "setores":
     c1, c2 = st.columns(2)
     cat = df["categoria"].value_counts()
     with c1:
@@ -198,7 +216,7 @@ with aba_setores:
             "categoria_principal": "Categoria mais frequente",
         })
 
-with aba_previsao:
+if pagina == "previsoes":
     # Usa só os filtros de setor/categoria/prioridade: o modelo precisa do histórico completo
     res = previsao.prever(base)
     if res is None:
@@ -256,7 +274,7 @@ with aba_previsao:
             st.dataframe(res.ranking.assign(erro_medio=res.ranking["erro_medio"].round(2)), hide_index=True,
                          column_config={"modelo": "Modelo", "erro_medio": "Erro médio (chamados/semana)"})
 
-with aba_dados:
+if pagina == "dados":
     colunas = ["codigo", "criado_em", "resolvido_em", "status", "prioridade", "tipo", "categoria",
                "subcategoria", "setor_grupo", "setor", "unidade_informada", "tempo_resolucao_h",
                "tempo_resolucao_util_h", "sla_resolucao_cumprido"]
@@ -280,7 +298,7 @@ with aba_dados:
             "sla_resolucao_cumprido": st.column_config.CheckboxColumn("SLA ok"),
         })
 
-with aba_qualidade:
+if pagina == "qualidade":
     st.markdown('<div class="nota">Problemas encontrados nos dados da API. Nada foi apagado — '
                 'servem para corrigir na origem.</div>', unsafe_allow_html=True)
     q = qualidade[qualidade["codigo"].isin(df["codigo"])]

@@ -29,8 +29,39 @@ CSS = """
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,1&display=swap");
 html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inter", system-ui, sans-serif !important; }
 .stApp { background: var(--bg); color: var(--tinta); }
-[data-testid="stHeader"] { display: none; }  /* barra invisível que bloqueava cliques no topo */
-[data-testid="stToolbar"], [data-testid="stDecoration"], footer, #MainMenu { display: none !important; }
+/* Barra do topo transparente e "vazada" (não bloqueia cliques), mas o botão de reabrir o menu continua */
+[data-testid="stHeader"] { background: transparent; pointer-events: none; }
+[data-testid="stHeader"] * { pointer-events: none; }
+[data-testid="stExpandSidebarButton"], [data-testid="stExpandSidebarButton"] * { pointer-events: auto !important; }
+/* Menu lateral */
+[data-testid="stSidebar"] { background: var(--card); border-right: 1px solid var(--borda); }
+[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding-top: 8px; }
+.marca { display: flex; align-items: center; gap: 12px; padding: 0 6px 18px; border-bottom: 1px solid var(--borda); }
+.marca .logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--hero);
+  color: #fff; font-family: "Material Symbols Rounded"; font-size: 22px; font-variation-settings: "FILL" 1; }
+.marca b { display: block; font-size: 15px; color: var(--tinta); }
+.marca small { display: block; font-size: 12px; color: var(--muda); }
+.menu-titulo { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muda);
+  margin: 16px 8px 4px; }
+[data-testid="stSidebar"] [data-testid="stRadioGroup"] { gap: 4px; width: 100%; }
+[data-testid="stSidebar"] [data-testid="stElementContainer"], [data-testid="stSidebar"] [data-testid="stRadio"],
+[data-testid="stSidebar"] [data-testid="stRadioGroup"] { width: 100% !important; }
+[data-testid="stExpandSidebarButton"] { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; color: var(--tinta) !important; }
+[data-testid="stSidebar"] [data-testid="stRadioGroup"] > div { display: block !important; width: 100% !important; }
+[data-testid="stRadioOption"] { display: flex !important; width: 100% !important; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background .15s; }
+[data-testid="stRadioOption"] > div > div:first-child { display: none; }  /* esconde a bolinha do rádio */
+[data-testid="stRadioOption"] p { font-size: 14px; font-weight: 600; color: var(--tinta-2) !important; }
+[data-testid="stRadioOption"] p span[role="img"] { margin-right: 6px; color: var(--muda); }
+[data-testid="stRadioOption"]:hover { background: var(--neutro-fundo); }
+[data-testid="stRadioOption"][data-selected="true"] { background: var(--azul-fundo); box-shadow: inset 3px 0 0 var(--azul); }
+[data-testid="stRadioOption"][data-selected="true"] p, [data-testid="stRadioOption"][data-selected="true"] p span[role="img"] {
+  color: var(--azul-texto) !important; }
+[class*="st-key-tema_seletor"] [data-testid="stButtonGroup"] { padding: 0 4px; }
+@media (max-width: 640px) { .block-container { padding-top: 3.4rem; } }  /* espaço para o botão do menu */
+.titulo-pagina { font-size: 22px; font-weight: 700; color: var(--tinta); letter-spacing: -.01em; margin: 4px 2px 6px; }
+/* Esconde menu e deploy do Streamlit, mas mantém a barra (ela guarda o botão de reabrir o menu lateral) */
+[data-testid="stMainMenu"], [data-testid="stAppDeployButton"], [data-testid="stToolbarActions"],
+[data-testid="stDecoration"], footer, #MainMenu { display: none !important; }
 .block-container { padding-top: 1.4rem; padding-bottom: 3rem; max-width: 1440px; }
 /* Cabeçalho */
 .hero { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -44,7 +75,6 @@ html, body, [class*="css"], .stApp, button, input, textarea { font-family: "Inte
   backdrop-filter: blur(6px); }
 .hero .ponto { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
 /* Seletor de tema: opção ativa destacada nos dois temas */
-[class*="st-key-tema_seletor"] [data-testid="stButtonGroup"] { display: flex; justify-content: flex-end; }
 [class*="st-key-tema_seletor"] button[aria-checked="true"] { background: var(--azul-fundo) !important; color: var(--azul-texto) !important;
   border-color: var(--azul) !important; }
 [class*="st-key-tema_seletor"] button[aria-checked="true"] p { color: var(--azul-texto) !important; }
@@ -142,6 +172,10 @@ def cabecalho(titulo: str, subtitulo: str, atualizado: str) -> None:
   <div><div class="eyebrow">Central de chamados · TI</div><h1>{titulo}</h1><p>{subtitulo}</p></div>
   <div class="chip"><span class="ponto"></span>{atualizado}</div>
 </div>""")
+
+
+def titulo_pagina(texto: str) -> None:
+    st.html(f'<div class="titulo-pagina">{texto}</div>')
 
 
 def card():
