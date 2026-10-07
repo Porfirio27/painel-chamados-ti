@@ -12,7 +12,18 @@ import streamlit as st
 from src import config, estilo, extract, graficos as g, previsao, transform
 
 st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide")
-estilo.aplicar()
+
+# Tema claro/escuro: escolha guardada na URL (?tema=escuro) para valer ao recarregar ou compartilhar
+TEMAS = {"claro": ":material/light_mode: Claro", "escuro": ":material/dark_mode: Escuro"}
+if "tema" not in st.session_state:
+    st.session_state.tema = st.query_params.get("tema", "claro") if st.query_params.get("tema") in TEMAS else "claro"
+_, canto = st.columns([5, 1])
+with canto.container(key="tema_seletor"):
+    tema = st.segmented_control("Tema", list(TEMAS), format_func=TEMAS.get, key="tema",
+                                label_visibility="collapsed") or "claro"
+st.query_params["tema"] = tema
+estilo.aplicar(tema)
+g.usar_tema(tema)
 
 
 @st.cache_data(ttl=3600, show_spinner="Buscando chamados na API...")
