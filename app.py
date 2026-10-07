@@ -9,7 +9,7 @@ e ficam em cache por 1 hora.
 import pandas as pd
 import streamlit as st
 
-from src import config, estilo, extract, graficos as g, previsao, transform
+from src import config, estilo, extract, graficos as g, previsao, relatorio, transform
 
 # "auto": menu aberto no computador e recolhido no celular
 st.set_page_config(page_title="Chamados de TI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
@@ -71,7 +71,7 @@ estilo.cabecalho("Chamados de TI", "Volume, tempo de atendimento, SLA e previsã
 
 dmin, dmax = fato["data"].min(), fato["data"].max()
 with st.container(key="filtros"):
-    f1, f2, f3, f4, f5 = st.columns([2, 2, 2, 1.4, 0.9], vertical_alignment="bottom")
+    f1, f2, f3, f4, f5, f6 = st.columns([1.9, 1.9, 1.9, 1.3, 1.15, 0.9], vertical_alignment="bottom")
     periodo = f1.date_input("Período", (dmin, dmax), min_value=dmin, max_value=dmax, format="DD/MM/YYYY")
     grupos = f2.multiselect("Grupo de setor", sorted(fato["setor_grupo"].unique()), placeholder="Todos")
     categorias = f3.multiselect("Categoria", sorted(fato["categoria"].unique()), placeholder="Todas")
@@ -99,6 +99,14 @@ if df.empty:
 # Período anterior de mesma duração, para comparação
 duracao = fim - ini + pd.Timedelta(days=1)
 ant = base[(base["data"] >= ini - duracao) & (base["data"] < ini)]
+
+# Relatório PDF com os filtros atuais; só é gerado quando o botão é clicado
+f6.download_button(
+    "PDF", icon=":material/picture_as_pdf:", width="stretch", mime="application/pdf",
+    file_name=f"relatorio_chamados_{ini:%Y%m%d}_{fim:%Y%m%d}.pdf",
+    data=lambda: relatorio.gerar(df, base, ant, qualidade, ini, fim,
+                                 {"grupos": grupos, "categorias": categorias, "prioridades": prioridades}, atualizado),
+    help="Resumo em PDF (2 páginas) com os filtros aplicados")
 
 
 # ---------------------------------------------------------------- indicadores
